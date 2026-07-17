@@ -1,0 +1,1 @@
+export const slugRegex = /^[a-zA-Z0-9-]+$/;

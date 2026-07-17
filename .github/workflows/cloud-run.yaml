@@ -1,0 +1,76 @@
+name: Backend API CI/CD Pipeline
+
+on:
+  push:
+    branches: [master]
+
+env:
+  REGISTRY: ${{ secrets.GCP_REGION }}-docker.pkg.dev
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REPOSITORY: ${{ secrets.GCP_APP_NAME }} 
+  IMAGE_NAME: ${{ secrets.GCP_APP_NAME }}
+  REGION: ${{ secrets.GCP_REGION }}
+  SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+  SERVICE_NAME: ${{ secrets.GCP_APP_NAME }}
+  
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+jobs:
+  deploy:
+    name: Build, Push, and Deploy to Cloud Run
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Google Auth
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ env.SERVICE_ACCOUNT_KEY }}
+
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGISTRY }}
+
+      - name: Build Docker image
+        env:
+          DOCKER_BUILDKIT: 1
+        run: |
+          docker build \
+            --build-arg DATABASE_URL=${{ env.DATABASE_URL }} \
+            --build-arg ACCESS_TOKEN=${{ env.ACCESS_TOKEN }} \
+            -t ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:latest .
+
+      - name: Push Docker images
+        run: |
+          docker push ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:latest
+         
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          image: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:latest
+          env_vars: |
+            DATABASE_URL: ${{ env.DATABASE_URL }}
+            ACCESS_TOKEN: ${{ env.ACCESS_TOKEN }}
+          flags: |
+            --allow-unauthenticated
+            --port=8000
+            --memory=512Mi
+            --cpu=1
+            --min-instances=1
+            --max-instances=10
+            --concurrency=80
+      - name: Show Output
+        run: echo ${{ steps.deploy.outputs.url }}

@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. UBAH DARI MYSQL KE POSTGRESQL DI SINI
+datasource db {
+  provider = "postgresql" 
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id         Int       @id @default(autoincrement())
+  telephone  String    @unique
+  name       String
+  code       String?
+  isActive   Boolean   @default(true)
+  divisionId Int       @map("division_id")
+  division   Division  @relation(fields: [divisionId], references: [id])
+  itemOut    ItemOut[]
+  createdAt  DateTime? @default(now()) @map("created_at")
+  updatedAt  DateTime? @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Admin {
+  id          Int           @id @default(autoincrement())
+  telephone   String
+  name        String
+  email       String
+  password    String
+  isActive    Boolean       @default(true)
+  adminRole   ADMIN_ROLE    @map("admin_role")
+  divisionId  Int           @map("division_id")
+  division    Division      @relation(fields: [divisionId], references: [id])
+  itemRestock ItemRestock[]
+  itemOut     ItemOut[]
+  createdAt   DateTime?     @default(now()) @map("created_at")
+  updatedAt   DateTime?     @updatedAt @map("updated_at")
+  itemBalance ItemBalance[]
+
+  @@map("admin")
+}
+
+model Unit {
+  id        Int       @id @default(autoincrement())
+  title     String
+  items     Item[]
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  @@map("unit")
+}
+
+model Division {
+  id        Int       @id @default(autoincrement())
+  title     String
+  users     Users[]
+  admins    Admin[]
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  @@map("division")
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  title     String
+  items     Item[]    @relation("ItemCategory")
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  @@map("category")
+}
+
+model Item {
+  id          Int           @id @default(autoincrement())
+  title       String
+  code        String
+  brand       String?
+  location    String?
+  supplier    String?
+  isActive    Boolean       @default(true)
+  stock       Int
+  price       Int           @default(0)
+  description String?
+  unitId      Int           @map("unit_id")
+  unit        Unit          @relation(fields: [unitId], references: [id])
+  typeId      Int           @map("type_id")
+  category    Category      @relation("ItemCategory", fields: [typeId], references: [id])
+  itemRestock ItemRestock[]
+  itemOut     ItemOut[]
+  createdAt   DateTime?     @default(now()) @map("created_at")
+  updatedAt   DateTime?     @updatedAt @map("updated_at")
+  itemBalance ItemBalance[]
+
+  @@map("item")
+}
+
+model ItemRestock {
+  id          Int       @id @default(autoincrement())
+  code        String    @unique
+  itemId      Int       @map("item_id")
+  item        Item      @relation(fields: [itemId], references: [id])
+  amount      Int
+  description String?
+  news        NEWS
+  adminId     Int       @map("admin_id")
+  admin       Admin     @relation(fields: [adminId], references: [id])
+  createdAt   DateTime? @default(now()) @map("created_at")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  @@map("item_restock")
+}
+
+model ItemOut {
+  id        Int       @id @default(autoincrement())
+  code      String    @unique
+  itemId    Int       @map("item_id")
+  item      Item      @relation(fields: [itemId], references: [id])
+  amount    Int
+  news      NEWS
+  userId    Int       @map("user_id")
+  user      Users     @relation(fields: [userId], references: [id])
+  adminId   Int       @map("admin_id")
+  admin     Admin     @relation(fields: [adminId], references: [id])
+  createdAt DateTime? @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("item_out")
+}
+
+model ItemBalance {
+  id           Int       @id @default(autoincrement()) @map("id")
+  code         String    @unique
+  itemId       Int       @map("item_id")
+  item         Item      @relation(fields: [itemId], references: [id])
+  amount       Int       @map("amount")
+  initialStock Int       @map("initial_stock")
+  finalStock   Int       @map("final_stock")
+  news         NEWS
+  description  String?
+  adminId      Int       @map("admin_id")
+  admin        Admin     @relation(fields: [adminId], references: [id])
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  @@map("item_balance")
+}
+
+enum NEWS {
+  TRUE
+  FALSE
+}
+
+enum ADMIN_ROLE {
+  SUPERADMIN
+  INSPECTOR
+  OPERATOR
+}

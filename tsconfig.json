@@ -1,0 +1,25 @@
+{
+  "include": ["src/**/*.ts", "prisma/**/*.ts"],
+  "compilerOptions": {
+    /* Target & Environment */
+    "target": "es2016",
+    "module": "node16",
+
+    /* Perbaikan Error & Konfigurasi Path */
+    "moduleResolution": "node16",
+    "rootDir": "./" /* Diubah ke "./" agar bisa mencakup src dan prisma */,
+    "outDir": "./dist",
+
+    /* Path & Types */
+    "typeRoots": ["./types", "./node_modules/@types"],
+    "types": ["node"],
+
+    /* Interop Constraints */
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* Type Checking */
+    "strict": true,
+    "skipLibCheck": true
+  }
+}
