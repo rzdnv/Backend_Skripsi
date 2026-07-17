@@ -436,7 +436,8 @@ export const createItemOut = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const { body, token } = req;
+  // const { body, token } = req ;
+  const { body, token } = req as any;
   const data = await itemOutService.createItemOut({
     body,
     token,
@@ -449,6 +450,7 @@ export const createItemOut = async (
 
   ResponseHandler.created(res, data, `Data berhasil di buat`);
 };
+
 export const softDeletedItemOut = async (
   req: Request,
   res: Response,
@@ -493,7 +495,8 @@ export const createItemRestock = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const { body, token } = req;
+  // const { body, token } = req;
+  const { body, token } = req as any;
   const data = await itemRestockService.createItemRestock({
     body,
     token,
@@ -531,7 +534,8 @@ export const createItemBalance = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const { body, token } = req;
+  // const { body, token } = req;
+  const { body, token } = req as any;
   const data = await itemBalanceService.createItemBalance({
     body,
     token,
