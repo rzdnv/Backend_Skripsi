@@ -48,7 +48,7 @@ export const web = express();
 const allowedOrigins = [
   "http://localhost:3000",
   "http://34.126.178.89:5001",
-  "https://frontend-203493376264.asia-southeast1.run.app",
+  "https://frontend-skripsi-sigma.vercel.app",
   "http://192.168.88.1:5001",
   "https://192.168.88.1:5001",
 ];
